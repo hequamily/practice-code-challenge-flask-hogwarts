@@ -18,11 +18,17 @@ class Student(db.Model, SerializerMixin):
     age = db.Column(db.String)
 
     # Add relationship
+    subjectEnrollments = db.relationship("SubjectEnrollment", back_populates="student", cascade="all, delete-orphan")
     
     # Add serialization
+    serialize_rules = ("-class_enrollments")
 
     # Add validation
-
+    @validates("age")
+    def validates_age(self, key, value):
+        if value > 11 or value <18:
+            raise ValueError(f"Must have a {key}.")
+        return value
     
     
     def __repr__(self):
@@ -35,9 +41,10 @@ class Subject(db.Model, SerializerMixin):
     title = db.Column(db.String)
 
     # Add relationship
-    
+    subject_Enrollments = db.relationship("SubjectEnrollment", back_populates="subject", cascade="all, delete-orphan")
     # Add serialization
-    
+    serialize_rules = ("-class_enrollments")
+
     def __repr__(self):
         return f'<Subject {self.id}>'
 
@@ -47,12 +54,26 @@ class SubjectEnrollment(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     enrollment_year = db.Column(db.Integer, nullable=False)
 
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id"))
+    subject_id = db.Column(db.Integer, db.ForeignKey("subjects.id"))
+
+
     # Add relationships
-    
+    subjects = db.relationship("Subject", back_populates="subjectEnrollment")
+    students = db.relationship("Student", back_populates="subjectEnrollment")
+
     # Add serialization
+    serialize_rules = ("-students", "-subjects")
     
     # Add validation
-    
+    @validates("enrollment_year")
+    def validates_age(self, key, value):
+        if value > 2023:
+            raise ValueError(f"Must have a {key}.")
+        return value
+
+  
+
     def __repr__(self):
         return f'<SubjectEnrollment {self.id}>'
 
